@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+    <string name="app_name">Task2_completed</string>
+    <string name="ftime_placeholder">00:00:00</string>
+    <style name="Base.Theme.Task2_completed" parent="Theme.Material3.DayNight.NoActionBar">
+        
+        
+    </style>
+    <style name="Theme.Task2_completed" parent="Base.Theme.Task2_completed"/>
+</resources>
