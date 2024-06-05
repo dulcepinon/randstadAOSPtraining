@@ -12,47 +12,53 @@ import androidx.core.view.WindowInsetsCompat
 
 class MainActivity : AppCompatActivity() {
 
-    private val mHandler = Handler(Looper.getMainLooper()) //variable type: handler, initialize with a handler that operates in the main looper
-    private var timeInSecondsForeground: Long = 0
-    private var timeInSecondsBackground: Long = 0
+    private val mForegroundHandler = Handler(Looper.getMainLooper())
+    private val mBackgroundHandler = Handler(Looper.getMainLooper())
+
+    private var startForegroundTime: Long = 0
+    private var elapsedForegroundTime: Long = 0
+
+    private var startBackgroundTime: Long = 0
+    private var elapsedBackgroundTime: Long = 0
+
     private lateinit var foregroundTimerText: TextView
     private lateinit var backgroundTimerText: TextView
 
-    private var foregroundTimeRunning: Runnable = object : Runnable {
+    private var foregroundTimer: Runnable = object : Runnable {
         override fun run() {
-            timeInSecondsForeground++
-            updateForegroundTimer(timeInSecondsForeground)
-            mHandler.postDelayed(this, 1000)
+            updateForegroundTimer()
+            mForegroundHandler.postDelayed(this, 1000)
         }
     }
 
-    private var backgroundTimeRunning: Runnable = object : Runnable {
+    private var backgroundTimer: Runnable = object : Runnable {
         override fun run() {
-            timeInSecondsBackground++
-            updateBackgroundTimer(timeInSecondsBackground)
-            mHandler.postDelayed(this, 1000)
+            updateBackgroundTimer()
+            mBackgroundHandler.postDelayed(this, 1000)
         }
     }
+    private fun updateForegroundTimer() {
+        val fgndTimeMillis = elapsedForegroundTime + (System.currentTimeMillis() - startForegroundTime)
 
-    private fun updateBackgroundTimer(fTimeInSeconds: Long) {
+        val fTimeInSeconds= fgndTimeMillis / 1000
         val foregroundHours = fTimeInSeconds/3600
         val foregroundMinutes = (fTimeInSeconds%3600)/60
         val foregroundSeconds = fTimeInSeconds%60
 
-        val formattedTime = String.format("%02d:%02d:%02d",foregroundHours,foregroundMinutes,foregroundSeconds)
-        backgroundTimerText.text = formattedTime
+        val fFormattedTime = String.format("%02d:%02d:%02d",foregroundHours,foregroundMinutes,foregroundSeconds)
+        foregroundTimerText.text = fFormattedTime
     }
+    private fun updateBackgroundTimer() {
+        val backgndTimeMillis = elapsedBackgroundTime + (System.currentTimeMillis() - startBackgroundTime)
 
-    private fun updateForegroundTimer(fTimeInSeconds: Long) {
-        val foregroundHours = fTimeInSeconds/3600
-        val foregroundMinutes = (fTimeInSeconds%3600)/60
-        val foregroundSeconds = fTimeInSeconds%60
+        val bTimeInSeconds= backgndTimeMillis / 1000
+        val backgroundHours = bTimeInSeconds/3600
+        val backgroundMinutes = (bTimeInSeconds%3600)/60
+        val backgroundSeconds = bTimeInSeconds%60
 
-        val formattedTime = String.format("%02d:%02d:%02d",foregroundHours,foregroundMinutes,foregroundSeconds)
-        foregroundTimerText.text = formattedTime
+        val bFormattedTime = String.format("%02d:%02d:%02d",backgroundHours,backgroundMinutes,backgroundSeconds)
+        backgroundTimerText.text = bFormattedTime
     }
-
-
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -62,35 +68,30 @@ class MainActivity : AppCompatActivity() {
         foregroundTimerText = findViewById(R.id.foregroundTimer)
         backgroundTimerText = findViewById(R.id.BackgroundTimer)
 
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
-            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
-            insets
-        }
+        startBackgroundTime = System.currentTimeMillis()
     }
 
     override fun onResume() {
         super.onResume()
-        //Toast.makeText(this, "Inside onResume", Toast.LENGTH_SHORT).show()
-        mHandler.post(foregroundTimeRunning)
-        mHandler.removeCallbacks(backgroundTimeRunning)
+        startForegroundTime = System.currentTimeMillis()
+        mForegroundHandler.post(foregroundTimer)
+
+        elapsedBackgroundTime += System.currentTimeMillis() - startBackgroundTime
+        mBackgroundHandler.removeCallbacks(backgroundTimer)
     }
 
     override fun onPause() {
         super.onPause()
-        mHandler.removeCallbacks(foregroundTimeRunning)
-        mHandler.post(backgroundTimeRunning)
-    }
+        elapsedForegroundTime += System.currentTimeMillis() - startForegroundTime
+        mForegroundHandler.removeCallbacks(foregroundTimer)
 
-    override fun onStop() {
-        super.onStop()
-        Toast.makeText(this, "Inside onStop", Toast.LENGTH_SHORT).show()
-        //mHandler.removeCallbacks(foregroundTimeRunning)
+        startBackgroundTime = System.currentTimeMillis()
+        mBackgroundHandler.post(backgroundTimer)
     }
 
     override fun onDestroy() {
         super.onDestroy()
-        mHandler.removeCallbacks(foregroundTimeRunning)
-        mHandler.removeCallbacks(backgroundTimeRunning)
+        mForegroundHandler.removeCallbacks(foregroundTimer)
+        mBackgroundHandler.removeCallbacks(backgroundTimer)
     }
 }
