@@ -12,7 +12,7 @@ class UpTimeService : Service() {
     private val tag = "UpTimeService"
 
     private val mBinder = object : IAIDLUpTimeInterface.Stub() {
-        override fun getUpTime(): String {
+        override fun getUpTime(): String  {
 
             val timeInMillis = SystemClock.elapsedRealtime()
             val elapsedTime = DateUtils.formatElapsedTime(timeInMillis/ 1000)
